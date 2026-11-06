@@ -1,0 +1,16 @@
+
+.shop-panel{width:min(900px,94vw)}
+.shop-currency{display:flex;gap:18px;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:rgba(200,230,255,.8)}
+.shop-currency b{color:#eaf6ff}
+.shop-body{display:flex;flex-direction:column;gap:12px;padding:10px 16px 16px}
+.shop-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.shop-tab{background:linear-gradient(180deg,rgba(40,70,120,.25),rgba(20,40,80,.18));border:1px solid rgba(110,160,255,.35);color:rgba(210,235,255,.9);padding:6px 12px;font-size:9px;letter-spacing:.24em;text-transform:uppercase;cursor:pointer}
+.shop-tab.active{border-color:rgba(170,220,255,.8);background:linear-gradient(180deg,rgba(80,140,255,.35),rgba(40,90,190,.28))}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;max-height:50vh;overflow:auto;padding:4px}
+.shop-item{background:linear-gradient(180deg,rgba(12,22,38,.9),rgba(8,14,26,.95));border:1px solid rgba(110,160,255,.32);padding:12px;display:flex;flex-direction:column;gap:8px}
+.shop-item.owned{opacity:.6}
+.shop-item-name{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:#eaf6ff}
+.shop-item-type{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(170,210,255,.6)}
+.shop-item-price{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#bfe6ff}
+.shop-buy{background:linear-gradient(180deg,rgba(90,200,140,.28),rgba(40,120,80,.2));border:1px solid rgba(120,230,170,.48);color:#eafff5;padding:6px 10px;font-size:9px;letter-spacing:.28em;text-transform:uppercase;cursor:pointer}
+.shop-item.owned .shop-buy{background:linear-gradient(180deg,rgba(80,90,110,.28),rgba(40,50,70,.22));border-color:rgba(140,160,200,.4);color:rgba(200,215,235,.7)}

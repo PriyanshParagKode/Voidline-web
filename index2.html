@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#05070d" />
+<title>VOIDLINE // Last Contact</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<canvas id="stage"></canvas>
+<div class="scanlines" aria-hidden="true"></div>
+<div id="vignette" aria-hidden="true"></div>
+<div id="damage-flash" aria-hidden="true"></div>
+<div id="speedlines" aria-hidden="true"></div>
+<div id="whiteout" aria-hidden="true"></div>
+
+<!-- ============================== HUD ============================== -->
+<div id="hud" class="hidden" aria-hidden="true">
+  <div class="hud-topleft">
+    <div class="hud-panel ship-panel">
+      <div class="ship-tag"><span class="dot"></span><span id="hud-ship">SF-9 KESTREL</span><span class="faint" id="hud-loadout"></span></div>
+      <div class="meter-row">
+        <label>HULL</label>
+        <div class="meter"><i id="bar-hull" class="fill hull"></i><em id="bar-hull-ghost" class="ghost"></em></div>
+        <b id="val-hull">100</b>
+      </div>
+      <div class="meter-row">
+        <label>SHIELD</label>
+        <div class="meter"><i id="bar-shield" class="fill shield"></i></div>
+        <b id="val-shield">100</b>
+      </div>
+      <div class="meter-row slim">
+        <label>BOOST</label>
+        <div class="meter"><i id="bar-boost" class="fill boost"></i></div>
+        <b id="val-boost" class="faint">100</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud-topcenter">
+    <div class="wave-strip">
+      <span class="eyebrow">SORTIE</span>
+      <div class="wave-num"><b id="hud-wave">01</b><span id="hud-wave-max">/ 10</span></div>
+      <div class="objective" id="hud-objective">CLEAR THE SECTOR</div>
+    </div>
+    <div id="hud-combo" class="combo hidden"><b>x2</b> CHAIN</div>
+    <div id="boss-wrap" class="boss-wrap hidden">
+      <div class="boss-label"><span>HIVE MOTHER</span><b id="boss-hp-text">100%</b></div>
+      <div class="boss-bar"><i id="boss-bar"></i></div>
+    </div>
+  </div>
+
+  <div class="hud-topright">
+    <div class="hud-panel stats-panel">
+      <div class="stat"><span>SCORE</span><b id="hud-score">0</b></div>
+      <div class="stat"><span>KILLS</span><b id="hud-kills">0</b></div>
+      <div class="stat"><span>MATS</span><b id="hud-mats">0</b></div>
+      <div class="stat"><span>THREAT</span><b id="hud-threat" class="ok">LOW</b></div>
+    </div>
+    <div class="hud-panel stats-panel hidden" id="hud-build-wrap"><div class="stat"><span>BUILD</span><b id="hud-build">-</b></div></div>
+  </div>
+
+  <div id="crosshair" class="crosshair">
+    <span class="ch ch-tl"></span><span class="ch ch-tr"></span><span class="ch ch-bl"></span><span class="ch ch-br"></span>
+    <span class="ch-dot"></span>
+    <span class="ch-tick t-up"></span><span class="ch-tick t-down"></span><span class="ch-tick t-left"></span><span class="ch-tick t-right"></span>
+  </div>
+
+  <svg id="lock-ring" class="lock-ring hidden" viewBox="0 0 120 120" aria-hidden="true">
+    <circle class="lr-bg" cx="60" cy="60" r="48"></circle>
+    <circle id="lr-progress" class="lr-prog" cx="60" cy="60" r="48"></circle>
+    <circle id="lr-ready" class="lr-ready" cx="60" cy="60" r="40"></circle>
+  </svg>
+
+  <div id="target-bracket" class="target-bracket hidden">
+    <span class="tb-c tl"></span><span class="tb-c tr"></span><span class="tb-c bl"></span><span class="tb-c br"></span>
+    <div class="tb-label"><span id="tb-name">DRONE</span><span id="tb-dist">320m</span></div>
+    <div class="tb-bar"><i id="tb-hp"></i></div>
+  </div>
+
+  <div class="hud-bottomleft">
+    <div class="hud-panel flight-panel">
+      <div class="speed-readout"><b id="hud-speed">000</b><span>M/S</span></div>
+      <div class="throttle-track"><i id="bar-throttle"></i></div>
+      <div class="throttle-label"><span>THROTTLE</span><span id="val-throttle">40%</span></div>
+      <div class="weapon-row">
+        <div class="wpn">
+          <span class="eyebrow">PULSE CANNONS</span>
+          <div class="heat-track"><i id="bar-heat"></i></div>
+          <span id="hud-heat" class="wpn-state">READY</span>
+        </div>
+        <div class="wpn missiles">
+          <span class="eyebrow">MISSILES</span>
+          <div class="missile-readout"><b id="hud-missiles">6</b><span id="hud-missile-state">READY</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud-bottomright">
+    <div class="radar-shell">
+      <canvas id="radar" width="196" height="196"></canvas>
+      <div class="radar-caption"><span>TACTICAL</span><span>2 KM</span></div>
+    </div>
+  </div>
+
+  <div class="hud-bottomcenter">
+    <div id="radio" class="radio hidden">
+      <span class="radio-who" id="radio-who">COMMAND</span>
+      <span class="radio-text" id="radio-text"></span>
+    </div>
+    <div class="hint-line" id="hint-line">LMB FIRE · RMB MISSILE · W/S THROTTLE · SHIFT BOOST · B BUILD PLANNER (PAUSES) · ESC PAUSE</div>
+  </div>
+
+  <div id="banner" class="banner hidden">
+    <span id="banner-sub">INCOMING</span>
+    <b id="banner-main">WAVE 01</b>
+    <i></i>
+  </div>
+
+  <div id="warn" class="warn hidden"><span class="warn-icon">!</span><span id="warn-text">HULL CRITICAL</span></div>
+
+  <div id="toasts" class="toasts"></div>
+
+  <!-- touch flight controls (shown only while flying on touch devices) -->
+  <div id="touch-controls" class="touch-controls hidden" aria-hidden="true">
+    <div id="tc-stick" class="tc-stick">
+      <span class="tc-stick-ring"></span>
+      <i id="tc-knob" class="tc-knob"></i>
+      <span class="tc-stick-label">STEER</span>
+    </div>
+    <div class="tc-throttle">
+      <button class="tc-mini" id="tc-thr-up" aria-label="Throttle up">+</button>
+      <span>THR</span>
+      <button class="tc-mini" id="tc-thr-down" aria-label="Throttle down">âˆ’</button>
+    </div>
+    <div class="tc-actions">
+      <button class="tc-btn tc-fire" id="tc-fire" aria-label="Fire cannons">FIRE</button>
+      <button class="tc-btn tc-missile" id="tc-missile" aria-label="Launch missiles">MISSILE</button>
+      <button class="tc-btn tc-boost" id="tc-boost" aria-label="Boost">BOOST</button>
+      <button class="tc-btn tc-brake" id="tc-brake" aria-label="Brake">BRAKE</button>
+      <button class="tc-btn tc-mini tc-cam" id="tc-camera" aria-label="Toggle camera">CAM</button>
+      <button class="tc-btn tc-mini tc-build" id="tc-build" aria-label="Build planner">BLD</button>
+      <button class="tc-btn tc-mini tc-pause" id="tc-pause" aria-label="Pause">II</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== BOOT ============================== -->
+<section id="screen-boot" class="screen boot-screen">
+  <div class="boot-inner">
+    <div class="boot-mark">VL</div>
+    <div class="boot-title">VOIDLINE</div>
+    <div class="boot-bar"><i id="boot-bar"></i></div>
+    <div class="boot-status" id="boot-status">INITIALIZING FLIGHT SYSTEMS</div>
+    <div class="boot-meta">NEURAL LINK // STABLE &nbsp;·&nbsp; REACTOR // ONLINE</div>
+  </div>
+</section>
+
+<!-- ============================== TITLE ============================== -->
+<section id="screen-title" class="screen title-screen hidden">
+  <div class="title-scrim"></div>
+  <header class="title-brand">
+    <div class="eyebrow">OUTER RIM <span class="slash">//</span> SECTOR 7 <span class="slash">//</span> 2387</div>
+    <h1>VOID<span>LINE</span></h1>
+    <div class="title-sub">LAST CONTACT</div>
+  </header>
+
+  <nav class="main-menu" aria-label="Main menu">
+    <button class="menu-item primary-item" data-action="campaign">
+      <span class="mi-index">01</span>
+      <span class="mi-label">CAMPAIGN<small>TEN SORTIES ONE WAY HOME</small></span>
+      <span class="mi-arrow"></span>
+    </button>
+    <button class="menu-item" data-action="endless">
+      <span class="mi-index">02</span>
+      <span class="mi-label">ENDLESS<small>SURVIVE THE SWARM</small></span>
+      <span class="mi-arrow"></span>
+    </button>
+    <button class="menu-item" data-action="hangar">
+      <span class="mi-index">03</span>
+      <span class="mi-label">HANGAR<small>SELECT YOUR VESSEL</small></span>
+      <span class="mi-arrow"></span>
+    </button>
+    <button class="menu-item compact" data-action="shop">
+      <span class="mi-index">04</span><span class="mi-label">SHOP</span><span class="mi-arrow"></span>
+    </button>
+    <button class="menu-item compact" data-action="settings">
+      <span class="mi-index">05</span><span class="mi-label">SETTINGS</span><span class="mi-arrow"></span>
+    </button>
+    <button class="menu-item compact" data-action="help">
+      <span class="mi-index">06</span><span class="mi-label">FIELD MANUAL</span><span class="mi-arrow"></span>
+    </button>
+    <button class="menu-item compact" data-action="credits">
+      <span class="mi-index">07</span><span class="mi-label">CREDITS</span><span class="mi-arrow"></span>
+    </button>
+  </nav>
+
+  <footer class="title-footer">
+    <div class="best"><span>BEST SCORE</span><b id="best-score">0</b></div>
+    <div class="best"><span>BEST WAVE</span><b id="best-wave">0</b></div>
+    <div class="best"><span>LIFETIME KILLS</span><b id="best-kills">0</b></div>
+    <div class="build">BUILD 1.0.1 <span>·</span> WEBGL</div>
+  </footer>
+
+  <div class="audio-hint" id="audio-hint"><span class="pulse-dot"></span> CLICK ANYWHERE TO ENABLE AUDIO</div>
+</section>
+
+<!-- ============================== HANGAR ============================== -->
+<section id="screen-hangar" class="screen hangar-screen hidden">
+  <header class="hangar-top">
+    <button class="back-btn" data-action="back">BACK</button>
+    <div class="hangar-title">HANGAR <span>VESSEL SELECTION</span></div>
+    <div class="hangar-pilot">PILOT <b>KAI VOSS</b> <span class="dot-sep"></span> 9TH EXPEDITIONARY</div>
+  </header>
+
+  <aside class="hangar-left">
+    <div class="hud-panel ship-card">
+      <div class="ship-class" id="ship-class">INTERCEPTOR</div>
+      <h2 id="ship-name">SF-9 KESTREL</h2>
+      <div class="ship-rule"></div>
+      <p id="ship-desc"></p>
+      <div class="bar-stats" id="ship-stats"></div>
+      <div class="livery-block">
+        <div class="eyebrow">PAINT SCHEME</div>
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <div class="livery-block">
+        <div class="eyebrow">SHIP EQUIPMENT</div>
+        <div id="hangar-equipment" class="hangar-equipment"></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="hangar-stage">
+    <div class="inspect-hint" id="inspect-hint">DRAG TO INSPECT <span>·</span> SCROLL TO ZOOM</div>
+    <div class="ship-cycle">
+      <button class="cycle-btn" data-action="prev-ship" aria-label="Previous ship">‹</button>
+      <div class="cycle-dots" id="cycle-dots"></div>
+      <button class="cycle-btn" data-action="next-ship" aria-label="Next ship">›</button>
+    </div>
+  </div>
+
+  <aside class="hangar-right">
+    <div class="hud-panel loadout-card">
+      <div class="eyebrow">LOADOUT</div>
+      <ul id="ship-loadout"></ul>
+      <div class="eyebrow spec-gap">FLIGHT TELEMETRY</div>
+      <div class="perf" id="ship-perf"></div>
+      <button class="deploy-btn" id="hangar-deploy-btn" data-action="deploy"><span id="hangar-deploy-main">DEPLOY</span><i id="hangar-deploy-sub">CAMPAIGN</i></button>
+      <button class="endless-btn" id="hangar-endless-btn" data-action="endless-deploy">ENDLESS SORTIE</button>
+      <button class="deploy-btn hidden" id="hangar-buy-btn" data-action="buy-hangar-ship"><span>PURCHASE SHIP</span><i id="hangar-buy-price">0 COINS</i></button>
+      <div class="deploy-note" id="hangar-deploy-note">LAUNCH BAY 04 CLEARANCE GRANTED</div>
+    </div>
+  </aside>
+</section>
+
+<!-- ============================== SHOP ============================== -->
+<section id="screen-shop" class="screen modal-screen hidden">
+  <div class="modal-panel wide shop-panel">
+    <header class="modal-head">
+      <div><div class="eyebrow">ARMS &amp; ACCESSORIES</div><h2>SHOP</h2></div>
+      <div class="shop-currency">
+        <span>COINS: <b id="shop-coins">1000</b></span>
+      </div>
+      <button class="close-btn" data-action="close-modal" aria-label="Close">✕</button>
+    </header>
+    <div class="shop-body">
+      <div class="shop-tabs">
+        <button class="shop-tab active" data-tab="featured">FEATURED</button>
+        <button class="shop-tab" data-tab="ships">HANGAR</button>
+        <button class="shop-tab" data-tab="skins">SKINS</button>
+        <button class="shop-tab" data-tab="trails">TRAILS</button>
+        <button class="shop-tab" data-tab="upgrades">UPGRADES</button>
+        <button class="shop-tab" data-tab="boosters">BOOSTERS</button>
+        <button class="shop-tab" data-tab="emblems">EMBLEMS</button>
+        <button class="shop-tab" data-tab="packs">PACKS</button>
+      </div>
+      <div class="shop-grid" id="shop-grid"></div>
+      <div class="shop-preview" id="shop-preview">
+        <div class="shop-preview-head">PREVIEW</div>
+        <div class="shop-preview-canvas-wrap hidden" id="shop-preview-canvas-wrap">
+          <canvas id="shop-preview-canvas" width="240" height="150"></canvas>
+        </div>
+        <div class="shop-preview-body" id="shop-preview-body">Select an item to preview its details and attributes.</div>
+      </div>
+    </div>
+    <div class="modal-foot">Earn coins by destroying hostiles. Purchases are saved locally.</div>
+  </div>
+</section>
+
+<!-- ============================== SETTINGS ============================== -->
+<section id="screen-settings" class="screen modal-screen hidden">
+  <div class="modal-panel">
+    <header class="modal-head">
+      <div><div class="eyebrow">SYSTEMS</div><h2>SETTINGS</h2></div>
+      <button class="close-btn" data-action="close-modal" aria-label="Close">✕</button>
+    </header>
+    <div class="settings-body">
+      <div class="settings-group">
+        <div class="group-label">AUDIO</div>
+        <div class="setting">
+          <label>MASTER VOLUME</label>
+          <input type="range" id="set-master" min="0" max="100" step="1" />
+          <output id="out-master">80</output>
+        </div>
+        <div class="setting">
+          <label>MUSIC</label>
+          <input type="range" id="set-music" min="0" max="100" step="1" />
+          <output id="out-music">55</output>
+        </div>
+        <div class="setting">
+          <label>EFFECTS</label>
+          <input type="range" id="set-sfx" min="0" max="100" step="1" />
+          <output id="out-sfx">85</output>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="group-label">FLIGHT</div>
+        <div class="setting">
+          <label>MOUSE SENSITIVITY</label>
+          <input type="range" id="set-sens" min="20" max="200" step="5" />
+          <output id="out-sens">100</output>
+        </div>
+        <div class="setting">
+          <label>CAMERA SHAKE</label>
+          <input type="range" id="set-shake" min="0" max="100" step="5" />
+          <output id="out-shake">70</output>
+        </div>
+        <div class="setting toggle-setting">
+          <label>INVERT PITCH</label>
+          <button class="toggle" id="set-invert" role="switch" aria-checked="false"><i></i><span>OFF</span></button>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="group-label">SYSTEM</div>
+        <div class="setting">
+          <label>DIFFICULTY</label>
+          <div class="segmented" id="set-difficulty">
+            <button data-diff="cadet">CADET</button>
+            <button data-diff="normal" class="active">NORMAL</button>
+            <button data-diff="veteran">VETERAN</button>
+          </div>
+        </div>
+        <div class="setting">
+          <label>RENDER QUALITY</label>
+          <div class="segmented" id="set-quality">
+            <button data-quality="low">LOW</button>
+            <button data-quality="medium">MEDIUM</button>
+            <button data-quality="high" class="active">HIGH</button>
+          </div>
+        </div>
+        <div class="setting toggle-setting">
+          <label>SHOW FPS</label>
+          <button class="toggle" id="set-fps" role="switch" aria-checked="false"><i></i><span>OFF</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">Settings are stored locally on this terminal.</div>
+  </div>
+</section>
+
+<!-- ============================== FIELD MANUAL ============================== -->
+<section id="screen-help" class="screen modal-screen hidden">
+  <div class="modal-panel wide">
+    <header class="modal-head">
+      <div><div class="eyebrow">9TH EXPEDITIONARY WING</div><h2>FIELD MANUAL</h2></div>
+      <button class="close-btn" data-action="close-modal" aria-label="Close">✕</button>
+    </header>
+    <div class="manual-body">
+      <div class="manual-col">
+        <div class="group-label">FLIGHT CONTROLS</div>
+        <div class="keyrow"><span class="keys"><kbd>MOUSE</kbd></span><span>Pitch &amp; yaw — steer the nose</span></div>
+        <div class="keyrow"><span class="keys"><kbd>W</kbd><kbd>S</kbd></span><span>Increase / decrease throttle</span></div>
+        <div class="keyrow"><span class="keys"><kbd>A</kbd><kbd>D</kbd></span><span>Roll left / right</span></div>
+        <div class="keyrow"><span class="keys"><kbd>SHIFT</kbd></span><span>Afterburner boost</span></div>
+        <div class="keyrow"><span class="keys"><kbd>CTRL</kbd></span><span>Brake / vector thrust</span></div>
+        <div class="keyrow"><span class="keys"><kbd>ARROWS</kbd></span><span>Keyboard steering</span></div>
+        <div class="keyrow"><span class="keys"><kbd>LMB</kbd></span><span>Fire pulse cannons</span></div>
+        <div class="keyrow"><span class="keys"><kbd>RMB</kbd></span><span>Hold to lock · release to launch missiles</span></div>
+        <div class="keyrow"><span class="keys"><kbd>C</kbd></span><span>Toggle chase / cockpit camera</span></div>
+        <div class="keyrow"><span class="keys"><kbd>B</kbd></span><span>Open Build Planner (pauses sortie) — review structures in a table before building</span></div>
+        <div class="keyrow"><span class="keys"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></span><span>Quick-open planner with Turret / Command Tower / Repair Beacon selected</span></div>
+        <div class="keyrow"><span class="keys"><kbd>ENTER</kbd></span><span>Deploy selected structure once from the Build Planner (uses MATS)</span></div>
+        <div class="keyrow"><span class="keys"><kbd>ESC</kbd></span><span>Close planner / pause (no placement ghost; open planner again to place another)</span></div>
+      </div>
+      <div class="manual-col">
+        <div class="group-label">COMBAT DOCTRINE</div>
+        <div class="tip"><b>01 · LEAD YOUR TARGET</b><p>Aliens never stop chasing. Their swarm tactics punish straight lines — roll, cut throttle, and force them to overshoot.</p></div>
+        <div class="tip"><b>02 · MIND THE HEAT</b><p>Pulse cannons build heat. If the bar hits full the cannons lock out until they cool. Fire in controlled bursts.</p></div>
+        <div class="tip"><b>03 · SHIELD REGENERATION</b><p>Shields recharge after four seconds without damage. Hull does not. Break contact when your screen turns red.</p></div>
+        <div class="tip"><b>04 · MISSILE LOCK</b><p>Hold RMB with a hostile inside the reticle. A full ring means a solid lock. Release to launch a homing salvo.</p></div>
+        <div class="tip"><b>05 · SALVAGE</b><p>Destroyed hostiles may drop nanite cells and missile canisters. Fly through them to collect.</p></div>
+      </div>
+    </div>
+    <div class="mobile-help">
+      <div class="group-label">TOUCH FLIGHT CONTROLS</div>
+      <p><b>LEFT PAD</b> steer · <b>FIRE</b> pulse cannons · <b>MISSILE</b> hold to lock, release to launch</p>
+      <p><b>BOOST</b> / <b>BRAKE</b> engines · <b>+ / −</b> throttle · <b>CAM</b> view · <b>❚❚</b> pause</p>
+      <p><b>BUILD (desktop)</b> Press <b>B</b> to open the Build Planner (sortie pauses). Review the table, choose Turret / Command Tower / Repair Beacon, then <b>Deploy Once</b>. It places a single structure ahead of your ship — open the planner again to place another (uses MATS).</p>
+    </div>
+    <div class="modal-foot">“The void does not negotiate. Neither do we.” — Wing Commander S. Alaric</div>
+  </div>
+</section>
+
+<!-- ============================== CREDITS ============================== -->
+<section id="screen-credits" class="screen modal-screen hidden">
+  <div class="modal-panel credits-panel">
+    <header class="modal-head">
+      <div><div class="eyebrow">THANK YOU FOR FLYING</div><h2>CREDITS</h2></div>
+      <button class="close-btn" data-action="close-modal" aria-label="Close">✕</button>
+    </header>
+    <div class="credits-body">
+      <div class="credit-block"><span>DESIGN &amp; CODE</span><b>THE VOIDLINE TEAM</b></div>
+      <div class="credit-block"><span>3D ENGINE</span><b>THREE.JS</b></div>
+      <div class="credit-block"><span>SHIPWRIGHT</span><b>PROCEDURAL MODEL DIVISION</b></div>
+      <div class="credit-block"><span>AUDIO</span><b>SYNTHESIZED IN THE BROWSER</b></div>
+      <div class="credit-block"><span>TEST PILOTS</span><b>YOU</b></div>
+      <p class="credit-note">Every ship, star, explosion and sound in this game is generated in real time. No external assets were harmed in the making of this conflict.</p>
+      <div class="credit-sign">VOIDLINE // LAST CONTACT</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== BUILD PLANNER ============================== -->
+<section id="screen-buildplan" class="screen modal-screen hidden" aria-label="Build planner">
+  <div class="modal-panel wide buildplan-panel">
+    <header class="modal-head">
+      <div>
+        <div class="eyebrow">FIELD ENGINEERING // SORTIE PAUSED</div>
+        <h2>BUILD PLANNER</h2>
+      </div>
+      <div class="shop-currency buildplan-mats">MATS: <b id="buildplan-mats">0</b></div>
+      <button class="close-btn" data-action="buildplan-close" aria-label="Close">✕</button>
+    </header>
+    <div class="buildplan-body">
+      <p class="buildplan-intro">Review structures before deployment. The sortie is paused while you plan. Select a structure, confirm its cost and role, then deploy it <b>once</b>. No placement ghost appears in front of you — open the Build Planner again if you want to place another structure.</p>
+      <div class="buildplan-table-wrap">
+        <table class="build-table" aria-label="Available structures">
+          <thead>
+            <tr>
+              <th>KEY</th>
+              <th>STRUCTURE</th>
+              <th>ROLE</th>
+              <th>COST</th>
+              <th>HP</th>
+              <th>RANGE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="buildplan-tbody"></tbody>
+        </table>
+      </div>
+      <div class="buildplan-detail" id="buildplan-detail">Select a structure to review deployment details.</div>
+    </div>
+    <div class="modal-foot">
+      <div class="buildplan-actions">
+        <button class="action-btn primary" id="buildplan-enter-btn" data-action="buildplan-enter"><span>DEPLOY ONCE</span></button>
+        <button class="action-btn" id="buildplan-tier-btn" data-action="buildplan-tier"><span>TIER: MK I</span></button>
+        <button class="action-btn" data-action="buildplan-close"><span>CANCEL / RESUME</span></button>
+      </div>
+      <div class="faint">Deploy places <b>one</b> structure ahead of your ship. Toggle tier for stronger (costlier) builds. B opens planner · 1/2/3 quick-select · Enter deploys selected · Esc closes planner</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PAUSE ============================== -->
+<section id="screen-pause" class="screen pause-screen hidden">
+  <div class="pause-panel">
+    <div class="eyebrow">SORTIE SUSPENDED</div>
+    <h2>STANDBY</h2>
+    <div class="pause-sub" id="pause-sub">SF-9 KESTREL · WAVE 01</div>
+    <div class="pause-menu">
+      <button class="menu-item compact" data-action="resume"><span class="mi-index">01</span><span class="mi-label">RESUME</span><span class="mi-arrow">›</span></button>
+      <button class="menu-item compact" data-action="buildplan"><span class="mi-index">02</span><span class="mi-label">BUILD PLANNER</span><span class="mi-arrow">›</span></button>
+      <button class="menu-item compact" data-action="pause-settings"><span class="mi-index">03</span><span class="mi-label">SETTINGS</span><span class="mi-arrow">›</span></button>
+      <button class="menu-item compact" data-action="pause-help"><span class="mi-index">04</span><span class="mi-label">FIELD MANUAL</span><span class="mi-arrow">›</span></button>
+      <button class="menu-item compact" data-action="restart"><span class="mi-index">05</span><span class="mi-label">RESTART SORTIE</span><span class="mi-arrow">›</span></button>
+      <button class="menu-item compact danger" data-action="abandon"><span class="mi-index">06</span><span class="mi-label">ABANDON MISSION</span><span class="mi-arrow">›</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CINEMA ============================== -->
+<div id="cinema" class="cinema hidden" aria-hidden="true">
+  <div class="cine-bar top"></div>
+  <div class="cine-bar bottom"></div>
+  <div class="cine-chapter" id="cine-chapter">PROLOGUE</div>
+  <div class="cine-loc" id="cine-loc">SECTOR 7 // OUTER RIM</div>
+  <div class="cine-sub" id="cine-sub"></div>
+  <button class="cine-skip" id="cine-skip">SKIP â–¸</button>
+  <div class="cine-title" id="cine-title"><span>VOIDLINE</span><i>LAST CONTACT</i></div>
+</div>
+
+<!-- ============================== RESULT ============================== -->
+<section id="screen-result" class="screen result-screen hidden">
+  <div class="result-inner">
+    <div class="eyebrow" id="result-eyebrow">SORTIE COMPLETE</div>
+    <h1 id="result-title">VICTORY</h1>
+    <p id="result-sub"></p>
+    <div class="result-stats" id="result-stats"></div>
+    <div class="result-actions">
+      <button class="deploy-btn" data-action="retry"><span>REDEPLOY</span><i>TRY AGAIN ▸</i></button>
+      <button class="menu-item compact" data-action="result-hangar"><span class="mi-label">HANGAR</span><span class="mi-arrow">›</span></button>
+      <button class="menu-item compact" data-action="result-menu"><span class="mi-label">MAIN MENU</span><span class="mi-arrow">›</span></button>
+    </div>
+    <div class="result-best" id="result-best"></div>
+  </div>
+</section>
+
+<div id="fps" class="fps hidden">60 FPS</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/models.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/game.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
