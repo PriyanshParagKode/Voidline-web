@@ -2357,10 +2357,10 @@ VV.PAINTS = [
 ];
 
 VV.ALIEN_TYPES = {
-  drone:   { label: 'DRONE',      hp: 20,  speed: 118, turn: 2.7, radius: 5,  damage: 8,  fireRate: 1.7, range: 340, score: 100, bulletSpeed: 230, scale: 1 },
-  striker: { label: 'STRIKER',    hp: 52,  speed: 92,  turn: 1.8, radius: 8,  damage: 13, fireRate: 1.35, range: 460, score: 250, bulletSpeed: 260, scale: 1 },
-  lancer:  { label: 'LANCER',     hp: 38,  speed: 78,  turn: 1.35, radius: 7, damage: 17, fireRate: 2.4, range: 620, score: 200, bulletSpeed: 400, scale: 1 },
-  boss:    { label: 'HIVE MOTHER',hp: 1700, speed: 40, turn: 0.55, radius: 26, damage: 16, fireRate: 1.1, range: 700, score: 7500, bulletSpeed: 250, scale: 1 }
+  drone:   { label: 'DRONE',      hp: 34,  speed: 136, turn: 3.1,  radius: 5,  damage: 12, fireRate: 1.25, range: 390, score: 120, bulletSpeed: 265, scale: 1 },
+  striker: { label: 'STRIKER',    hp: 88,  speed: 104, turn: 2.15, radius: 8,  damage: 18, fireRate: 0.98, range: 520, score: 300, bulletSpeed: 295, scale: 1 },
+  lancer:  { label: 'LANCER',     hp: 68,  speed: 90,  turn: 1.7,  radius: 7,  damage: 24, fireRate: 1.65, range: 700, score: 260, bulletSpeed: 455, scale: 1 },
+  boss:    { label: 'HIVE MOTHER',hp: 2800, speed: 50,  turn: 0.72, radius: 26, damage: 22, fireRate: 0.78, range: 820, score: 9000, bulletSpeed: 305, scale: 1 }
 };
 
 /* ---------------------------------------------------------------- utilities */
@@ -5488,9 +5488,9 @@ VV.Game = class {
     this.maxWaves = mode === 'campaign' ? 10 : Infinity;
 
     const diff = this.settings.difficulty;
-    if (diff === 'cadet') this.difficulty = { hp: 0.72, dmg: 0.65, count: 0.8 };
-    else if (diff === 'veteran') this.difficulty = { hp: 1.35, dmg: 1.3, count: 1.2 };
-    else this.difficulty = { hp: 1, dmg: 1, count: 1 };
+    if (diff === 'cadet') this.difficulty = { hp: 0.92, dmg: 0.88, count: 0.95 };
+    else if (diff === 'veteran') this.difficulty = { hp: 1.6, dmg: 1.55, count: 1.32 };
+    else this.difficulty = { hp: 1.22, dmg: 1.18, count: 1.14 };
 
     this.equipment = this.loadEquipment ? this.loadEquipment() : (this.equipment || {});
     this.mods = this.getEquipmentMods ? this.getEquipmentMods() : this.mods || {};
@@ -5582,7 +5582,7 @@ VV.Game = class {
       { id: 'pd', name: 'POINT DEFENSE', cost: 95, hp: 130, range: 360, fireRate: 0.12, damage: 5, desc: 'Intercepts nearby enemy threats and harasses close hostiles.', tier: 1 }
     ];
     this.structures = [];
-    this.buildMats = 140;
+    this.buildMats = 165;
     this.buildTier = 1;
     this.maxStructures = 10;
     this.minStructureSpacing = 48;
@@ -6047,17 +6047,20 @@ VV.Game = class {
     const stats = VV.ALIEN_TYPES[type];
     if (!stats) return null;
     const group = VV.Models.makeAlien(type);
-    const scale = type === 'boss' ? (this.wave >= 10 ? 1.12 : 1) : 1;
+    const scale = type === 'boss' ? (this.wave >= 10 ? 1.18 : (this.wave >= 6 ? 1.08 : 1)) : 1;
     group.scale.setScalar(0.01);
     this.root.add(group);
-    const waveScale = 1 + (Math.max(1, this.wave) - 1) * 0.075;
-    const hp = stats.hp * waveScale * this.difficulty.hp * (type === 'boss' && this.wave >= 10 ? 1.35 : 1);
+    const wv = Math.max(1, this.wave) - 1;
+    const waveScale = 1 + wv * 0.115 + Math.min(0.55, wv * 0.018);
+    const bossMult = type === 'boss' ? (1.15 + Math.min(0.85, wv * 0.06)) : 1;
+    const hp = stats.hp * waveScale * this.difficulty.hp * bossMult;
+    const speedMult = 1 + Math.min(0.18, wv * 0.009) + (type === 'boss' ? 0.06 : 0);
     const e = {
       type, stats, group, pos: pos.clone(), quat: new THREE.Quaternion(),
-      hp, hpMax: hp, alive: true, spawnT: 0.65, age: 0, scale,
+      hp, hpMax: hp, alive: true, spawnT: type === 'boss' ? 0.85 : 0.55, age: 0, scale,
       radius: stats.radius * (type === 'boss' ? scale : 1),
-      speed: stats.speed, turn: stats.turn,
-      fireTimer: 1 + Math.random() * stats.fireRate,
+      speed: stats.speed * speedMult, turn: stats.turn * (1 + Math.min(0.12, wv * 0.006)),
+      fireTimer: 0.55 + Math.random() * Math.max(0.35, stats.fireRate * 0.85),
       orbitDir: Math.random() < 0.5 ? 1 : -1,
       aiTimer: 0, bob: Math.random() * 10,
       muzzles: (group.userData.muzzles || []).map(m => m.position.clone()),
@@ -6205,9 +6208,14 @@ VV.Game = class {
       if (e.type === 'boss') {
         e.bossSpawnTimer -= dt;
         if (e.bossSpawnTimer <= 0) {
-          e.bossSpawnTimer = 11;
-          const escorts = this.enemies.filter(x => x.alive && x.type === 'drone').length;
-          if (escorts < 5) this.pending.push('drone');
+          e.bossSpawnTimer = Math.max(5.5, 8.5 - Math.min(2.5, (this.wave || 1) * 0.18));
+          const escorts = this.enemies.filter(x => x.alive && x.type !== 'boss').length;
+          if (escorts < (9 + Math.floor((this.wave || 1) * 0.35))) {
+            const r = Math.random();
+            this.pending.push(r < 0.5 ? 'drone' : (r < 0.82 ? 'striker' : 'lancer'));
+            if (this.boss && this.boss.hp < this.boss.hpMax * 0.55 && Math.random() < 0.45) this.pending.push('drone');
+          }
+          if (this.boss && this.boss.hp < this.boss.hpMax * 0.35) this.ui.warn('HIVE MOTHER ENRAGED');
         }
       }
 
@@ -6224,12 +6232,12 @@ VV.Game = class {
         const sHit = e.radius + (structTarget.id === 'mine' ? 5 : 7);
         if (structDist < sHit) {
           if (structTarget.id === 'mine') { this.detonateMine(structTarget, e); if (e.alive) this.killEnemy(e, false); continue; }
-          this.damageStructure(structTarget, (e.type === 'drone' ? 22 : e.type === 'boss' ? 35 : 26) * (this.difficulty.dmg || 1), e.pos.clone());
+          this.damageStructure(structTarget, (e.type === 'drone' ? 30 : e.type === 'boss' ? 55 : 38) * (this.difficulty.dmg || 1), e.pos.clone());
           if (e.type === 'drone') { this.killEnemy(e, false); continue; }
           e.pos.addScaledVector(e.pos.clone().sub(structTarget.pos).normalize(), 24);
           this.shake = Math.min(1, this.shake + 0.12);
           if (e.hp <= 0) { this.killEnemy(e, false); continue; }
-        } else if ((e.type === 'drone' || e.type === 'striker') && structDist < 180 && structDist < dist * 0.85) {
+        } else if ((e.type === 'drone' || e.type === 'striker' || e.type === 'lancer') && structDist < 240 && structDist < dist * 0.9) {
           // bias some attackers toward structures
           const toS = structTarget.pos.clone().sub(e.pos).normalize();
           e.pos.addScaledVector(toS, 18 * dt);
@@ -6238,14 +6246,15 @@ VV.Game = class {
       const contactDist = e.radius + this.shipData.spec.radius;
       if (dist < contactDist) {
         if (e.type === 'drone') {
-          this.damagePlayer(16 * this.difficulty.dmg, e.pos);
+          this.damagePlayer(24 * this.difficulty.dmg, e.pos);
           this.killEnemy(e, false);
           continue;
         } else {
-          this.damagePlayer(20 * this.difficulty.dmg, e.pos);
-          const push = dir.clone().multiplyScalar(-1);
-          e.pos.addScaledVector(push, 40);
-          this.shake = Math.min(1, this.shake + 0.2);
+          const ramDmg = (e.type === 'boss' ? 42 : e.type === 'lancer' ? 30 : 28) * this.difficulty.dmg;
+          this.damagePlayer(ramDmg, e.pos);
+          const push = e.pos.clone().sub(this.player.pos).normalize();
+          e.pos.addScaledVector(push, e.type === 'boss' ? 30 : 46);
+          this.shake = Math.min(1, this.shake + (e.type === 'boss' ? 0.35 : 0.24));
         }
       }
     }
@@ -6265,11 +6274,21 @@ VV.Game = class {
 
     const dmg = stats.damage * this.difficulty.dmg;
     if (e.type === 'boss') {
-      for (let i = -2; i <= 2; i++) {
-        const spread = dir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), i * 0.035);
-        this.spawnEnemyBullet(origin, spread, stats.bulletSpeed, dmg, 0xff3355, 0.9, 3.4);
+      const up = new THREE.Vector3(0, 1, 0);
+      const baseAim = d.clone();
+      const enraged = e.hp < e.hpMax * 0.45;
+      const count = enraged ? 9 : 7;
+      const half = (count - 1) / 2;
+      for (let i = -half; i <= half; i++) {
+        const spread = baseAim.clone().applyAxisAngle(up, i * (enraged ? 0.032 : 0.038));
+        if (enraged) spread.y += (Math.random() - 0.5) * 0.02;
+        spread.normalize();
+        this.spawnEnemyBullet(origin, spread, stats.bulletSpeed * (enraged ? 1.08 : 1), dmg * (enraged ? 1.1 : 1), enraged ? 0xff2244 : 0xff3355, 0.95, 3.5);
       }
-      this.audio.play('bossFire', { volume: 0.38 });
+      if (Math.random() < (enraged ? 0.75 : 0.45)) {
+        this.spawnEnemyBullet(origin, baseAim.clone(), stats.bulletSpeed * 1.12, dmg * 1.15, 0xff6677, 0.7, 2.8);
+      }
+      this.audio.play('bossFire', { volume: enraged ? 0.5 : 0.4 });
     } else {
       const spread = d.clone().add(new THREE.Vector3(
         (Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02
@@ -6445,10 +6464,10 @@ VV.Game = class {
       this.score += points;
       this.kills++;
       if (this.addProfileStat) this.addProfileStat('lifetimeKills', 1);
-      const coinReward = Math.round((e.type === 'boss' ? 250 : e.type === 'capital' ? 80 : e.type === 'striker' ? 20 : 10) * mult * (mods.coinMult || 1));
+      const coinReward = Math.round((e.type === 'boss' ? 320 : e.type === 'capital' ? 90 : e.type === 'striker' ? 24 : 12) * mult * (mods.coinMult || 1));
       if (this.addCoins) this.addCoins(coinReward);
       if (this.addProfileStat) this.addProfileStat('lifetimeCoins', coinReward);
-      const matReward = Math.round((e.type === 'boss' ? 80 : e.type === 'capital' ? 28 : e.type === 'striker' ? 10 : 6) * (1 + (mult - 1) * 0.1));
+      const matReward = Math.round((e.type === 'boss' ? 110 : e.type === 'capital' ? 34 : e.type === 'striker' ? 13 : 8) * (1 + (mult - 1) * 0.12));
       this.buildMats = (this.buildMats || 0) + matReward;
       if (mult >= 3) this.ui.toast(`${mult}x CHAIN  +${points}  +${coinReward}C  +${matReward}M`, true);
       else this.ui.toast(`+${points}  +${coinReward}C  +${matReward}M`, false);
@@ -6626,7 +6645,7 @@ VV.Game = class {
           this.player.hull += heal;
           this.ui.toast(`+${Math.round(heal)} HULL RESTORED`);
         } else {
-          this.player.rockets = Math.min(rocketMax, this.player.rockets + 3);
+          this.player.rockets = Math.min(rocketMax, this.player.rockets + 2);
           this.ui.toast('+3 MISSILES', true);
         }
         this.audio.play(pk.kind === 'repair' ? 'pickupRepair' : 'pickupRocket', { volume: 0.9 });
@@ -6657,13 +6676,14 @@ VV.Game = class {
 
     if (this.pending.length > 0) {
       this.spawnTimer = (this.spawnTimer || 0) - dt;
-      const maxAlive = Math.min(12, 5 + Math.floor(this.wave * 0.8) + (this.boss ? 3 : 0));
+      const maxAlive = Math.min(18, 7 + Math.floor(this.wave * 1.05) + (this.boss ? 4 : 0));
       if (this.spawnTimer <= 0 && this.enemies.length < maxAlive) {
         const type = this.pending.shift();
         const isBoss = type === 'boss';
         const pos = this.findSpawnPos(isBoss ? 400 : 330, isBoss ? 460 : 560, isBoss);
         this.spawnEnemy(type, pos);
-        this.spawnTimer = 0.85 + Math.random() * 0.7;
+        const baseSpawn = isBoss ? 1.15 : (0.52 - Math.min(0.18, this.wave * 0.012) + Math.random() * 0.38);
+        this.spawnTimer = Math.max(0.28, baseSpawn);
       }
     }
 
@@ -6679,12 +6699,12 @@ VV.Game = class {
     this.pending = [];
     this.spawnTimer = 0.6;
 
-    const isBossWave = (this.wave % 5 === 0);
+    const isBossWave = (this.mode === 'campaign') ? (this.wave % 4 === 0 || this.wave >= (this.maxWaves || 10)) : (this.wave % 3 === 0);
     this.buildObjectives = this.buildObjectives || { requiredDeploys: 0, deployedThisWave: 0, bonusClaimed: false };
     this.buildObjectives.deployedThisWave = 0;
     this.buildObjectives.bonusClaimed = false;
-    this.buildObjectives.requiredDeploys = (!isBossWave && this.mode === 'campaign' && (this.wave === 2 || this.wave % 4 === 0)) ? 1 : 0;
-    if (this.buildObjectives.requiredDeploys > 0) this.buildMats = (this.buildMats || 0) + 35;
+    this.buildObjectives.requiredDeploys = (!isBossWave && this.mode === 'campaign' && (this.wave === 2 || this.wave === 3 || this.wave % 3 === 0)) ? 1 : 0;
+    if (this.buildObjectives.requiredDeploys > 0) this.buildMats = (this.buildMats || 0) + 45;
     this.ui.banner('INCOMING', isBossWave ? 'HIVE MOTHER' : `WAVE ${String(this.wave).padStart(2, '0')}`);
     this.ui.updateHUD(this.hudState());
     this.audio.play('waveStart', { volume: isBossWave ? 0.9 : 0.75 });
@@ -6692,22 +6712,26 @@ VV.Game = class {
 
     if (isBossWave) {
       this.pending.push('boss');
-      const escorts = Math.min(6, 2 + Math.floor(this.wave / 2));
+      const escorts = Math.min(10, 4 + Math.floor(this.wave * 0.75));
       for (let i = 0; i < escorts; i++) {
-        this.pending.push(Math.random() < 0.6 ? 'drone' : 'striker');
+        const r = Math.random();
+        this.pending.push(r < 0.45 ? 'drone' : (r < 0.78 ? 'striker' : 'lancer'));
       }
+      if (this.wave >= 7) { this.pending.push('striker'); this.pending.push('lancer'); }
       this.audio.play('alarm');
-      this.say('COMMAND', this.wave >= 10
+      this.say('COMMAND', (this.mode === 'campaign' && this.wave >= (this.maxWaves || 10))
         ? "Final contact. That's the hive mother herself. End this."
         : "Massive energy signature — it's a hive mother. Watch your six.", 6);
     } else {
       const w = this.wave;
-      let drones = Math.round((3 + w * 1.15) * this.difficulty.count);
-      let strikers = w >= 2 ? Math.round((w * 0.55) * this.difficulty.count) : 0;
-      let lancers = w >= 3 ? Math.round((w * 0.35) * this.difficulty.count) : 0;
-      drones = Math.min(drones, 14);
-      strikers = Math.min(strikers, 6);
-      lancers = Math.min(lancers, 5);
+      let drones = Math.round((5 + w * 1.55) * this.difficulty.count);
+      if (w >= 5) { strikers += 1; lancers += 1; }
+      if (w >= 8) { drones += 2; strikers += 1; }
+      let strikers = w >= 1 ? Math.round((1.2 + w * 0.78) * this.difficulty.count) : 0;
+      let lancers = w >= 2 ? Math.round((0.8 + w * 0.55) * this.difficulty.count) : 0;
+      drones = Math.min(drones, 20);
+      strikers = Math.min(strikers, 10);
+      lancers = Math.min(lancers, 8);
       for (let i = 0; i < drones; i++) this.pending.push('drone');
       for (let i = 0; i < strikers; i++) this.pending.push('striker');
       for (let i = 0; i < lancers; i++) this.pending.push('lancer');
@@ -6744,16 +6768,16 @@ VV.Game = class {
       return;
     }
     this.intermission = true;
-    this.interTimer = 6.5;
+    this.interTimer = 4.6;
     for (const b of this.enemyBullets) {
       b.active = false;
       b.group.visible = false;
     }
-    let bonus = 300 + this.wave * 90;
+    let bonus = 320 + this.wave * 110;
     const bo = this.buildObjectives || {};
     let buildBonus = 0;
     if (bo.requiredDeploys > 0 && (bo.deployedThisWave || 0) >= bo.requiredDeploys && !bo.bonusClaimed) {
-      buildBonus = 55 + this.wave * 8;
+      buildBonus = 70 + this.wave * 10;
       this.buildMats = (this.buildMats || 0) + buildBonus;
       bo.bonusClaimed = true;
       this.addProfileStat && this.addProfileStat('buildObjectives', 1);
@@ -6763,9 +6787,9 @@ VV.Game = class {
     const hullMax = this.hullMax || spec.hull;
     const shieldMax = this.shieldMax || spec.shield;
     const rocketMax = this.rocketMax || spec.rockets;
-    this.player.hull = Math.min(hullMax, this.player.hull + hullMax * 0.18);
-    this.player.rockets = Math.min(rocketMax, this.player.rockets + 3);
-    this.player.shield = shieldMax;
+    this.player.hull = Math.min(hullMax, this.player.hull + hullMax * 0.08);
+    this.player.rockets = Math.min(rocketMax, this.player.rockets + 2);
+    this.player.shield = Math.min(shieldMax, Math.max(this.player.shield || 0, shieldMax * 0.55));
     this.ui.banner('SECTOR CLEAR', buildBonus ? `REGROUP · +${bonus} · +${buildBonus} MATS` : `REGROUP · +${bonus}`, 2800);
     this.say('COMMAND', buildBonus ? 'Sector clear. Field deployment objective complete — bonus materials awarded.' : 'Sector clear. Nanites are patching your hull — rearm and standby.', 5);
     this.audio.play('waveClear', { volume: 0.85 });
