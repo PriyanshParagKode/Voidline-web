@@ -955,114 +955,147 @@ body.touch-device .mobile-help{display:block;margin-top:18px;padding-top:14px;bo
 .eq-actions{display:flex;justify-content:flex-end;margin-bottom:4px}.eq-clear{font-size:10px;padding:4px 8px}.shop-item.equipped{border-color:rgba(126,240,168,.45);box-shadow:0 0 0 1px rgba(126,240,168,.12) inset}.shop-buy.equip-btn{background:rgba(126,232,255,.12)}.shop-item.owned .shop-buy.equip-btn{opacity:1}
 
 
-/* === MOBILE LANDSCAPE PLAYABILITY OVERRIDES (index-only) === */
-body.touch-device { --safe-t: env(safe-area-inset-top, 0px); --safe-r: env(safe-area-inset-right, 0px); --safe-b: env(safe-area-inset-bottom, 0px); --safe-l: env(safe-area-inset-left, 0px); }
+/* === MOBILE LANDSCAPE PLAYABILITY OVERRIDES (index-only, responsive) === */
+body.touch-device { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
 body.touch-device #stage { touch-action: none; }
-body.touch-device #hud { font-size: 10px; }
-/* Compact HUD, leave top-right clear for pause + map */
-body.touch-device .hud-topleft { top: max(6px, var(--safe-t)); left: max(6px, var(--safe-l)); transform: scale(0.78); transform-origin: top left; z-index: 6; }
-body.touch-device .hud-topcenter { top: max(4px, var(--safe-t)); transform: translateX(-50%) scale(0.74); transform-origin: top center; z-index: 6; }
-body.touch-device .hud-topright { top: max(6px, var(--safe-t)); right: calc(max(8px, var(--safe-r)) + 118px); transform: scale(0.72); transform-origin: top right; z-index: 6; }
-body.touch-device .hud-bottomleft { bottom: max(8px, var(--safe-b)); left: max(6px, var(--safe-l)); transform: scale(0.74); transform-origin: bottom left; opacity: .92; z-index: 6; }
-body.touch-device .hud-bottomcenter { bottom: max(148px, calc(var(--safe-b) + 138px)); width: min(52vw, 420px); z-index: 6; }
+body.touch-device #hud { font-size: clamp(8px, 1.8vmin, 11px); }
 body.touch-device #hint-line { display: none !important; }
-body.touch-device .radio { max-width: 100%; font-size: 10px; padding: 6px 8px; }
-body.touch-device .banner-main, body.touch-device #banner-main { font-size: clamp(22px, 5vw, 34px); }
-body.touch-device .warn { top: 42%; font-size: 12px; padding: 6px 10px; }
-body.touch-device .crosshair { transform: translate(-50%, -50%) scale(0.85); }
-body.touch-device .target-bracket { font-size: 10px; }
+body.touch-device .crosshair { transform: translate(-50%, -50%) scale(clamp(0.72, 1.5vmin, 0.9)); }
+body.touch-device .banner-main, body.touch-device #banner-main { font-size: clamp(18px, 5vmin, 36px); }
+body.touch-device .warn { top: 42%; font-size: clamp(10px, 2vmin, 13px); padding: 6px 10px; }
 
-/* Settings/pause: top-right corner, clearly visible and operative */
+/* Top-left / top-center: compact and fluid */
+body.touch-device .hud-topleft { top: max(4px, var(--sat)); left: max(4px, var(--sal)); transform: scale(clamp(0.58, 0.12vmin + 0.52, 0.82)); transform-origin: top left; z-index: 6; max-width: 28vw; }
+body.touch-device .hud-topcenter { top: max(2px, var(--sat)); left: 50%; transform: translateX(-50%) scale(clamp(0.56, 0.1vmin + 0.5, 0.78)); transform-origin: top center; z-index: 6; max-width: 46vw; }
+/* Top-right stats: keep left of pause+radar; hide when too narrow */
+body.touch-device .hud-topright {
+  top: max(4px, var(--sat));
+  right: calc(max(6px, var(--sar)) + clamp(108px, 22vmin, 170px));
+  left: auto;
+  transform: scale(clamp(0.54, 0.1vmin + 0.48, 0.74));
+  transform-origin: top right;
+  z-index: 6; max-width: min(34vw, 220px);
+}
+
+/* Settings/pause: fixed top-right, always visible/operative */
 body.touch-device #tc-pause, body.touch-device .tc-pause {
   position: fixed !important;
-  top: max(8px, var(--safe-t)) !important;
-  right: max(8px, var(--safe-r)) !important;
+  top: max(6px, var(--sat)) !important;
+  right: max(6px, var(--sar)) !important;
   bottom: auto !important; left: auto !important;
-  width: 52px !important; height: 40px !important; min-height: 40px !important;
-  z-index: 40 !important;
+  width: clamp(42px, 9vmin, 56px) !important;
+  height: clamp(34px, 7vmin, 42px) !important;
+  min-height: 0 !important;
+  z-index: 60 !important;
   display: inline-flex !important; align-items: center; justify-content: center;
-  font-size: 13px !important; font-weight: 700; letter-spacing: .06em;
+  font: 700 clamp(10px, 2.2vmin, 14px)/1 system-ui, sans-serif !important;
   color: #fff !important;
-  background: rgba(10, 22, 38, 0.88) !important;
-  border: 1px solid rgba(126,232,255,0.55) !important;
-  border-radius: 10px !important;
+  background: rgba(10, 22, 38, 0.92) !important;
+  border: 1px solid rgba(126,232,255,0.6) !important;
+  border-radius: clamp(8px, 1.6vmin, 10px) !important;
   box-shadow: 0 2px 10px rgba(0,0,0,.35);
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  touch-action: manipulation;
+  opacity: 1 !important; pointer-events: auto !important; touch-action: manipulation;
 }
+body.touch-device #tc-pause:active { background: rgba(126,232,255,0.25) !important; }
 
-/* Map/radar: just below settings button at top-right */
+/* Map/radar: just below settings, top-right, responsive size */
 body.touch-device .hud-bottomright {
   position: fixed !important;
-  top: calc(max(8px, var(--safe-t)) + 46px) !important;
-  right: max(8px, var(--safe-r)) !important;
+  top: calc(max(6px, var(--sat)) + clamp(38px, 7.8vmin, 48px)) !important;
+  right: max(6px, var(--sar)) !important;
   bottom: auto !important; left: auto !important;
-  transform: scale(0.78) !important;
-  transform-origin: top right !important;
-  z-index: 30 !important;
+  width: auto !important; height: auto !important;
+  transform: none !important;
+  z-index: 50 !important;
   pointer-events: none;
 }
-body.touch-device .radar-shell { width: 128px; height: 128px; }
-body.touch-device .radar-caption { font-size: 6px; opacity: .9; }
+body.touch-device .radar-shell { width: clamp(82px, 19vmin, 136px); height: clamp(82px, 19vmin, 136px); }
+body.touch-device #radar { width: 100% !important; height: 100% !important; display: block; }
+body.touch-device .radar-caption { font-size: clamp(5px, 1vmin, 7px); opacity: .85; }
 
-/* Touch controls: clearly visible and operative */
-body.touch-device .touch-controls { pointer-events: none; z-index: 25; }
+/* Bottom HUD elements */
+body.touch-device .hud-bottomleft { bottom: max(6px, var(--sab)); left: max(4px, var(--sal)); transform: scale(clamp(0.56, 0.1vmin + 0.5, 0.76)); transform-origin: bottom left; z-index: 6; max-width: 22vw; }
+body.touch-device .hud-bottomcenter { bottom: calc(max(8px, var(--sab)) + clamp(110px, 24vmin, 165px)); width: min(50vw, 420px); z-index: 6; }
+
+/* Touch controls: fluid, visible, operative */
+body.touch-device .touch-controls { pointer-events: none; z-index: 40; }
 body.touch-device .touch-controls > * { pointer-events: auto; }
-body.touch-device .tc-stick { left: max(10px, var(--safe-l)); bottom: max(10px, var(--safe-b)); width: 120px; height: 120px; opacity: .88; z-index: 26; }
-body.touch-device .tc-knob { width: 40px; height: 40px; }
-body.touch-device .tc-stick-ring { inset: 8px; border-color: rgba(126,232,255,.45); }
-body.touch-device .tc-stick-label { bottom: -14px; font-size: 6px; color: rgba(255,255,255,.75); }
-body.touch-device .tc-throttle { left: max(136px, calc(var(--safe-l) + 128px)); bottom: max(18px, calc(var(--safe-b) + 10px)); transform: scale(0.86); transform-origin: bottom left; opacity: .9; z-index: 26; }
-body.touch-device .tc-actions { right: max(8px, var(--safe-r)); bottom: max(8px, var(--safe-b)); width: 174px; gap: 7px; opacity: 1; transform: scale(0.96); transform-origin: bottom right; z-index: 26; }
-body.touch-device .tc-btn {
-  min-height: 44px; font-size: 11px; font-weight: 700; padding: 8px 6px;
-  color: #fff;
-  background: rgba(10, 22, 38, 0.82);
-  border: 1px solid rgba(126,232,255,0.42);
-  border-radius: 10px;
-  box-shadow: 0 1px 6px rgba(0,0,0,.25);
-  touch-action: manipulation;
+body.touch-device .tc-stick {
+  left: max(6px, var(--sal)); bottom: max(6px, var(--sab));
+  width: clamp(88px, 20vmin, 128px); height: clamp(88px, 20vmin, 128px);
+  opacity: .9; z-index: 41;
 }
-body.touch-device .tc-btn:active, body.touch-device .tc-btn.active { background: rgba(126,232,255,0.22); border-color: rgba(126,232,255,0.75); }
-body.touch-device .tc-btn.tc-mini { min-height: 38px; font-size: 10px; }
-body.touch-device .tc-fire, body.touch-device .tc-missile, body.touch-device .tc-boost, body.touch-device .tc-brake { min-height: 46px; }
-body.touch-device .tc-fire { border-color: rgba(255,170,90,.45); }
-body.touch-device .tc-missile { border-color: rgba(255,120,120,.45); }
-body.touch-device .tc-boost { border-color: rgba(120,220,255,.5); }
+body.touch-device .tc-knob { width: clamp(30px, 6.8vmin, 42px); height: clamp(30px, 6.8vmin, 42px); }
+body.touch-device .tc-stick-ring { inset: clamp(6px, 1.4vmin, 10px); border-color: rgba(126,232,255,.5); }
+body.touch-device .tc-stick-label { bottom: -12px; font-size: clamp(5px, 1vmin, 7px); }
 
-@media (orientation: landscape) and (max-height: 520px) {
-  body.touch-device .hud-topleft { transform: scale(0.68); }
-  body.touch-device .hud-topcenter { transform: translateX(-50%) scale(0.64); }
-  body.touch-device .hud-topright { right: calc(max(6px, var(--safe-r)) + 106px); transform: scale(0.64); }
+body.touch-device .tc-throttle {
+  left: calc(max(6px, var(--sal)) + clamp(92px, 21vmin, 138px));
+  bottom: max(10px, calc(var(--sab) + 4px));
+  transform: scale(clamp(0.68, 0.14vmin + 0.58, 0.9));
+  transform-origin: bottom left;
+  opacity: .92; z-index: 41;
+}
+
+body.touch-device .tc-actions {
+  right: max(6px, var(--sar)); bottom: max(6px, var(--sab));
+  width: clamp(138px, 30vmin, 182px);
+  gap: clamp(4px, 1vmin, 7px);
+  opacity: 1; transform: none;
+  display: grid; grid-template-columns: 1fr 1fr;
+  z-index: 41;
+}
+body.touch-device .tc-btn {
+  min-height: clamp(34px, 8.5vmin, 48px);
+  font: 700 clamp(9px, 1.9vmin, 12px)/1.1 system-ui, sans-serif;
+  padding: clamp(4px, 1vmin, 8px);
+  color: #fff; background: rgba(10, 22, 38, 0.86);
+  border: 1px solid rgba(126,232,255,0.46);
+  border-radius: clamp(8px, 1.6vmin, 10px);
+  box-shadow: 0 1px 6px rgba(0,0,0,.28);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+body.touch-device .tc-btn:active, body.touch-device .tc-btn.active { background: rgba(126,232,255,0.24); border-color: rgba(126,232,255,0.8); transform: scale(0.98); }
+body.touch-device .tc-btn.tc-mini { min-height: clamp(30px, 7.2vmin, 40px); font-size: clamp(8px, 1.7vmin, 11px); }
+body.touch-device .tc-fire, body.touch-device .tc-missile, body.touch-device .tc-boost, body.touch-device .tc-brake { min-height: clamp(36px, 9vmin, 50px); }
+body.touch-device .tc-fire { border-color: rgba(255,170,90,.5); }
+body.touch-device .tc-missile { border-color: rgba(255,120,120,.5); }
+body.touch-device .tc-boost { border-color: rgba(120,220,255,.55); }
+
+/* Adapt to tight screens (height or width) */
+@media (orientation: landscape) and (max-height: 500px) {
+  body.touch-device .hud-topleft { transform: scale(clamp(0.5, 0.1vmin + 0.44, 0.68)); }
+  body.touch-device .hud-topcenter { transform: translateX(-50%) scale(clamp(0.48, 0.09vmin + 0.42, 0.64)); }
   body.touch-device .hud-bottomleft { display: none; }
-  body.touch-device .hud-bottomcenter { bottom: max(124px, calc(var(--safe-b) + 114px)); }
-  body.touch-device #tc-pause, body.touch-device .tc-pause { width: 48px !important; height: 36px !important; min-height: 36px !important; top: max(6px, var(--safe-t)) !important; }
-  body.touch-device .hud-bottomright { top: calc(max(6px, var(--safe-t)) + 42px) !important; transform: scale(0.66) !important; }
-  body.touch-device .radar-shell { width: 112px; height: 112px; }
+  body.touch-device .hud-bottomcenter { bottom: calc(max(6px, var(--sab)) + clamp(96px, 22vmin, 130px)); }
   body.touch-device .radar-caption { display: none; }
-  body.touch-device .tc-stick { width: 106px; height: 106px; opacity: .86; }
-  body.touch-device .tc-knob { width: 36px; height: 36px; }
-  body.touch-device .tc-throttle { left: max(120px, calc(var(--safe-l) + 112px)); bottom: max(12px, var(--safe-b)); transform: scale(0.78); opacity: .88; }
-  body.touch-device .tc-actions { width: 162px; gap: 6px; transform: scale(0.92); }
-  body.touch-device .tc-btn { min-height: 40px; font-size: 10px; }
-  body.touch-device .tc-fire, body.touch-device .tc-missile, body.touch-device .tc-boost, body.touch-device .tc-brake { min-height: 42px; }
-  body.touch-device .boss-wrap { transform: translateX(-50%) scale(0.78); top: 54px; }
 }
-@media (orientation: landscape) and (max-height: 390px) {
+@media (orientation: landscape) and (max-height: 380px) {
   body.touch-device .hud-topcenter .objective, body.touch-device #hud-objective { display: none; }
-  body.touch-device .hud-topright { display: none; } /* keep pause+map clear */
-  body.touch-device .tc-actions { width: 152px; }
-  body.touch-device .hud-bottomright { transform: scale(0.58) !important; }
-  body.touch-device .radar-shell { width: 100px; height: 100px; }
+  body.touch-device .hud-topright { display: none; }
+  body.touch-device .boss-wrap { transform: translateX(-50%) scale(0.72); top: 46px; }
 }
+/* Narrow landscape (small width or very wide controls): stack/compact to avoid overlap */
+@media (orientation: landscape) and (max-width: 700px) {
+  body.touch-device .hud-topright { display: none; }
+  body.touch-device .tc-actions { width: clamp(128px, 34vmin, 156px); }
+  body.touch-device .tc-throttle { transform: scale(clamp(0.62, 0.13vmin + 0.54, 0.8)); }
+  body.touch-device .tc-stick { width: clamp(82px, 19vmin, 108px); height: clamp(82px, 19vmin, 108px); }
+}
+@media (orientation: landscape) and (max-width: 560px) {
+  body.touch-device .radar-shell { width: clamp(72px, 17vmin, 100px); height: clamp(72px, 17vmin, 100px); }
+  body.touch-device .hud-topcenter { max-width: 40vw; }
+  body.touch-device .tc-actions { width: clamp(120px, 36vmin, 144px); gap: 4px; }
+  body.touch-device .tc-btn { min-height: clamp(32px, 8vmin, 42px); font-size: clamp(8px, 1.8vmin, 10px); }
+}
+
 /* Build planner / menus on mobile landscape */
 @media (orientation: landscape) and (max-height: 520px) {
   .buildplan-panel { max-height: 96vh; overflow: auto; }
   .buildplan-table-wrap { max-height: 34vh; }
   .buildplan-intro { display: none; }
   .modal-panel { max-height: 94vh; overflow: auto; }
-  .title-center { transform: scale(0.82); transform-origin: center; }
+  .title-center { transform: scale(clamp(0.7, 0.15vmin + 0.6, 0.86)); transform-origin: center; }
 }
 </style>
 </head>
