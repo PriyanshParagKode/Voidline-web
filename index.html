@@ -959,56 +959,102 @@ body.touch-device .mobile-help{display:block;margin-top:18px;padding-top:14px;bo
 body.touch-device { --safe-t: env(safe-area-inset-top, 0px); --safe-r: env(safe-area-inset-right, 0px); --safe-b: env(safe-area-inset-bottom, 0px); --safe-l: env(safe-area-inset-left, 0px); }
 body.touch-device #stage { touch-action: none; }
 body.touch-device #hud { font-size: 10px; }
-body.touch-device .hud-topleft { top: max(6px, var(--safe-t)); left: max(6px, var(--safe-l)); transform: scale(0.82); transform-origin: top left; }
-body.touch-device .hud-topcenter { top: max(4px, var(--safe-t)); transform: translateX(-50%) scale(0.78); transform-origin: top center; }
-body.touch-device .hud-topright { top: max(6px, var(--safe-t)); right: max(6px, var(--safe-r)); transform: scale(0.8); transform-origin: top right; }
-body.touch-device .hud-bottomleft { bottom: max(8px, var(--safe-b)); left: max(6px, var(--safe-l)); transform: scale(0.78); transform-origin: bottom left; opacity: .92; }
-/* Move radar away from right-side touch buttons */
-body.touch-device .hud-bottomright { left: auto; right: calc(max(8px, var(--safe-r)) + 176px); bottom: max(6px, var(--safe-b)); transform: scale(0.68); transform-origin: bottom right; z-index: 2; }
-body.touch-device .radar-shell { width: 128px; height: 128px; }
-body.touch-device .radar-caption { display: none; }
-body.touch-device .hud-bottomcenter { bottom: max(140px, calc(var(--safe-b) + 132px)); width: min(52vw, 420px); }
+/* Compact HUD, leave top-right clear for pause + map */
+body.touch-device .hud-topleft { top: max(6px, var(--safe-t)); left: max(6px, var(--safe-l)); transform: scale(0.78); transform-origin: top left; z-index: 6; }
+body.touch-device .hud-topcenter { top: max(4px, var(--safe-t)); transform: translateX(-50%) scale(0.74); transform-origin: top center; z-index: 6; }
+body.touch-device .hud-topright { top: max(6px, var(--safe-t)); right: calc(max(8px, var(--safe-r)) + 118px); transform: scale(0.72); transform-origin: top right; z-index: 6; }
+body.touch-device .hud-bottomleft { bottom: max(8px, var(--safe-b)); left: max(6px, var(--safe-l)); transform: scale(0.74); transform-origin: bottom left; opacity: .92; z-index: 6; }
+body.touch-device .hud-bottomcenter { bottom: max(148px, calc(var(--safe-b) + 138px)); width: min(52vw, 420px); z-index: 6; }
 body.touch-device #hint-line { display: none !important; }
 body.touch-device .radio { max-width: 100%; font-size: 10px; padding: 6px 8px; }
 body.touch-device .banner-main, body.touch-device #banner-main { font-size: clamp(22px, 5vw, 34px); }
 body.touch-device .warn { top: 42%; font-size: 12px; padding: 6px 10px; }
-/* Touch controls: smaller, transparent, keep map visible */
-body.touch-device .touch-controls { pointer-events: none; }
-body.touch-device .touch-controls > * { pointer-events: auto; }
-body.touch-device .tc-stick { left: max(10px, var(--safe-l)); bottom: max(10px, var(--safe-b)); width: 116px; height: 116px; opacity: .72; }
-body.touch-device .tc-knob { width: 38px; height: 38px; }
-body.touch-device .tc-stick-ring { inset: 8px; }
-body.touch-device .tc-stick-label { bottom: -14px; font-size: 6px; }
-body.touch-device .tc-throttle { left: max(132px, calc(var(--safe-l) + 124px)); bottom: max(18px, calc(var(--safe-b) + 10px)); transform: scale(0.82); transform-origin: bottom left; opacity: .72; }
-body.touch-device .tc-actions { right: max(8px, var(--safe-r)); bottom: max(8px, var(--safe-b)); width: 168px; gap: 6px; opacity: .72; transform: scale(0.92); transform-origin: bottom right; }
-body.touch-device .tc-btn { min-height: 40px; font-size: 10px; padding: 8px 6px; background: rgba(8,16,28,.42); border-color: rgba(126,232,255,.22); }
-body.touch-device .tc-btn.tc-mini { min-height: 34px; font-size: 9px; }
-body.touch-device .tc-fire, body.touch-device .tc-missile, body.touch-device .tc-boost, body.touch-device .tc-brake { min-height: 42px; }
 body.touch-device .crosshair { transform: translate(-50%, -50%) scale(0.85); }
 body.touch-device .target-bracket { font-size: 10px; }
+
+/* Settings/pause: top-right corner, clearly visible and operative */
+body.touch-device #tc-pause, body.touch-device .tc-pause {
+  position: fixed !important;
+  top: max(8px, var(--safe-t)) !important;
+  right: max(8px, var(--safe-r)) !important;
+  bottom: auto !important; left: auto !important;
+  width: 52px !important; height: 40px !important; min-height: 40px !important;
+  z-index: 40 !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  font-size: 13px !important; font-weight: 700; letter-spacing: .06em;
+  color: #fff !important;
+  background: rgba(10, 22, 38, 0.88) !important;
+  border: 1px solid rgba(126,232,255,0.55) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,.35);
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+/* Map/radar: just below settings button at top-right */
+body.touch-device .hud-bottomright {
+  position: fixed !important;
+  top: calc(max(8px, var(--safe-t)) + 46px) !important;
+  right: max(8px, var(--safe-r)) !important;
+  bottom: auto !important; left: auto !important;
+  transform: scale(0.78) !important;
+  transform-origin: top right !important;
+  z-index: 30 !important;
+  pointer-events: none;
+}
+body.touch-device .radar-shell { width: 128px; height: 128px; }
+body.touch-device .radar-caption { font-size: 6px; opacity: .9; }
+
+/* Touch controls: clearly visible and operative */
+body.touch-device .touch-controls { pointer-events: none; z-index: 25; }
+body.touch-device .touch-controls > * { pointer-events: auto; }
+body.touch-device .tc-stick { left: max(10px, var(--safe-l)); bottom: max(10px, var(--safe-b)); width: 120px; height: 120px; opacity: .88; z-index: 26; }
+body.touch-device .tc-knob { width: 40px; height: 40px; }
+body.touch-device .tc-stick-ring { inset: 8px; border-color: rgba(126,232,255,.45); }
+body.touch-device .tc-stick-label { bottom: -14px; font-size: 6px; color: rgba(255,255,255,.75); }
+body.touch-device .tc-throttle { left: max(136px, calc(var(--safe-l) + 128px)); bottom: max(18px, calc(var(--safe-b) + 10px)); transform: scale(0.86); transform-origin: bottom left; opacity: .9; z-index: 26; }
+body.touch-device .tc-actions { right: max(8px, var(--safe-r)); bottom: max(8px, var(--safe-b)); width: 174px; gap: 7px; opacity: 1; transform: scale(0.96); transform-origin: bottom right; z-index: 26; }
+body.touch-device .tc-btn {
+  min-height: 44px; font-size: 11px; font-weight: 700; padding: 8px 6px;
+  color: #fff;
+  background: rgba(10, 22, 38, 0.82);
+  border: 1px solid rgba(126,232,255,0.42);
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.25);
+  touch-action: manipulation;
+}
+body.touch-device .tc-btn:active, body.touch-device .tc-btn.active { background: rgba(126,232,255,0.22); border-color: rgba(126,232,255,0.75); }
+body.touch-device .tc-btn.tc-mini { min-height: 38px; font-size: 10px; }
+body.touch-device .tc-fire, body.touch-device .tc-missile, body.touch-device .tc-boost, body.touch-device .tc-brake { min-height: 46px; }
+body.touch-device .tc-fire { border-color: rgba(255,170,90,.45); }
+body.touch-device .tc-missile { border-color: rgba(255,120,120,.45); }
+body.touch-device .tc-boost { border-color: rgba(120,220,255,.5); }
+
 @media (orientation: landscape) and (max-height: 520px) {
-  body.touch-device .hud-topleft { transform: scale(0.72); }
-  body.touch-device .hud-topcenter { transform: translateX(-50%) scale(0.68); }
-  body.touch-device .hud-topright { transform: scale(0.7); }
-  body.touch-device .hud-bottomleft { display: none; } /* speed/throttle panel hidden; touch has THR */
-  body.touch-device .hud-bottomright { right: calc(max(8px, var(--safe-r)) + 164px); bottom: max(4px, var(--safe-b)); transform: scale(0.58); transform-origin: bottom right; }
-  body.touch-device .radar-shell { width: 108px; height: 108px; }
-  body.touch-device .hud-bottomcenter { bottom: max(118px, calc(var(--safe-b) + 110px)); }
-  body.touch-device .tc-stick { width: 102px; height: 102px; opacity: .66; }
-  body.touch-device .tc-knob { width: 34px; height: 34px; }
-  body.touch-device .tc-throttle { left: max(116px, calc(var(--safe-l) + 108px)); bottom: max(12px, var(--safe-b)); transform: scale(0.74); opacity: .66; }
-  body.touch-device .tc-actions { width: 156px; gap: 5px; opacity: .66; transform: scale(0.88); }
-  body.touch-device .tc-btn { min-height: 36px; font-size: 9px; }
-  body.touch-device .tc-fire, body.touch-device .tc-missile, body.touch-device .tc-boost, body.touch-device .tc-brake { min-height: 38px; }
-  body.touch-device .combo, body.touch-device #hud-combo { transform: scale(0.85); }
+  body.touch-device .hud-topleft { transform: scale(0.68); }
+  body.touch-device .hud-topcenter { transform: translateX(-50%) scale(0.64); }
+  body.touch-device .hud-topright { right: calc(max(6px, var(--safe-r)) + 106px); transform: scale(0.64); }
+  body.touch-device .hud-bottomleft { display: none; }
+  body.touch-device .hud-bottomcenter { bottom: max(124px, calc(var(--safe-b) + 114px)); }
+  body.touch-device #tc-pause, body.touch-device .tc-pause { width: 48px !important; height: 36px !important; min-height: 36px !important; top: max(6px, var(--safe-t)) !important; }
+  body.touch-device .hud-bottomright { top: calc(max(6px, var(--safe-t)) + 42px) !important; transform: scale(0.66) !important; }
+  body.touch-device .radar-shell { width: 112px; height: 112px; }
+  body.touch-device .radar-caption { display: none; }
+  body.touch-device .tc-stick { width: 106px; height: 106px; opacity: .86; }
+  body.touch-device .tc-knob { width: 36px; height: 36px; }
+  body.touch-device .tc-throttle { left: max(120px, calc(var(--safe-l) + 112px)); bottom: max(12px, var(--safe-b)); transform: scale(0.78); opacity: .88; }
+  body.touch-device .tc-actions { width: 162px; gap: 6px; transform: scale(0.92); }
+  body.touch-device .tc-btn { min-height: 40px; font-size: 10px; }
+  body.touch-device .tc-fire, body.touch-device .tc-missile, body.touch-device .tc-boost, body.touch-device .tc-brake { min-height: 42px; }
   body.touch-device .boss-wrap { transform: translateX(-50%) scale(0.78); top: 54px; }
 }
 @media (orientation: landscape) and (max-height: 390px) {
   body.touch-device .hud-topcenter .objective, body.touch-device #hud-objective { display: none; }
-  body.touch-device .hud-topright .stats-panel { padding: 4px 6px; }
-  body.touch-device .tc-actions { width: 146px; }
-  body.touch-device .hud-bottomright { right: calc(max(6px, var(--safe-r)) + 152px); }
-  body.touch-device .radar-shell { width: 94px; height: 94px; }
+  body.touch-device .hud-topright { display: none; } /* keep pause+map clear */
+  body.touch-device .tc-actions { width: 152px; }
+  body.touch-device .hud-bottomright { transform: scale(0.58) !important; }
+  body.touch-device .radar-shell { width: 100px; height: 100px; }
 }
 /* Build planner / menus on mobile landscape */
 @media (orientation: landscape) and (max-height: 520px) {
